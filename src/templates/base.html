@@ -12,10 +12,10 @@
     <header class="container">
         <nav>
             <ul>
-                <li><strong>Commander Deck Organizer</strong></li>
-            </ul>
-            <ul>
                 <li><a href="/">Dashboard</a></li>
+                {% if user %}
+                    <li><a href="/logout" class="outline" style="color: #ef4444; border-color: #ef4444; padding: 4px 8px;">Logout ({{ user.username }})</a></li>
+                {% endif %}
             </ul>
         </nav>
     </header>

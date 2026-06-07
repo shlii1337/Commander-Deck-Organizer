@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<article style="max-width: 500px; margin: 3rem auto;">
+    <header>
+        <h3 style="margin: 0;">Willkommen beim Deck-Organizer</h3>
+    </header>
+    
+    {% if error %}
+        <p style="color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 8px;">⚠️ {{ error }}</p>
+    {% endif %}
+
+    <form method="POST" action="/login">
+        <label for="username">Benutzername</label>
+        <input type="text" id="username" name="username" placeholder="Dein Wunschname" required autocomplete="off">
+
+        <label for="password">Passwort</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required>
+
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button type="submit" style="flex: 1;">Einloggen</button>
+            <button type="submit" formaction="/register" class="outline secondary" style="flex: 1;">Registrieren</button>
+        </div>
+    </form>
+    <small style="text-align: center; display: block; color: #94a3b8;">Keine E-Mail erforderlich. Einfach Name & Passwort merken!</small>
+</article>
+{% endblock %}

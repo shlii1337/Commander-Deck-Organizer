@@ -1,24 +1,30 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from .database import Base
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+
+    # Verknüpfung: Ein User kann viele Decks haben
+    decks = relationship("Deck", back_populates="owner")
 
 class Deck(Base):
     __tablename__ = "decks"
 
-    # Automatisch hochzählende ID für jedes Deck (Primary Key)
     id = Column(Integer, primary_key=True, index=True)
-
-    # Die Daten, die wir von Scryfall holen werden
-    commander_name = Column(String, nullable=False)
-    color_identity = Column(
-        String, nullable=False
-    )  # Speichern wir als String (z.B. "W,U,B")
-    image_url = Column(String, nullable=True)
-
-    # Deine manuellen Angaben aus dem Formular
-    archetype = Column(String, nullable=True)  # z.B. Aristocrats, Tribal
-    bracket = Column(String, nullable=True)  # z.B. "Bracket 2" oder "Precon"
-    powerlevel = Column(Integer, nullable=True)  # Skala 1-10
-    status = Column(String, nullable=False)  # z.B. "Paper (Finished)", "Idea"
+    commander_name = Column(String, index=True)
+    color_identity = Column(String)
+    image_url = Column(String)
+    archetype = Column(String, nullable=True)
+    bracket = Column(String, nullable=True)
+    powerlevel = Column(Integer, nullable=True)
+    status = Column(String)
     moxfield_link = Column(String, nullable=True)
     
+    # NEU: Jedes Deck gehört jetzt fest zu einem User
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner = relationship("User", back_populates="decks")
