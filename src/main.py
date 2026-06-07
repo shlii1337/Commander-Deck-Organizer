@@ -4,8 +4,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-import models
-from database import engine, get_db
+from . import models
+from .database import engine, get_db
 
 # Hier sagen wir SQLAlchemy: "Guck in models.py und erstelle alle Tabellen in der DB, falls sie noch nicht existieren"
 models.Base.metadata.create_all(bind=engine)
