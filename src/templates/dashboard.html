@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Deine Commander Decks</h2>
+    <button onclick="openAddModal()" style="width: auto; margin-bottom: 0;">+ Neues Deck</button>
+</div>
+
+{% if not decks %}
+    <article style="text-align: center; padding: 3rem;" id="empty-state">
+        <h3>Noch keine Decks eingetragen</h3>
+        <p>Klicke oben auf "+ Neues Deck", um zu starten!</p>
+    </article>
+{% else %}
+    <div class="overflow-auto">
+        <table class="striped">
+            <thead>
+                <tr>
+                    <th scope="col">Commander</th>
+                    <th scope="col">Farben</th>
+                    <th scope="col">Archetype</th>
+                    <th scope="col">Bracket</th>
+                    <th scope="col">Powerlevel</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for deck in decks %}
+                <tr>
+                    <td style="display: flex; align-items: center; gap: 10px;">
+                        {% if deck.image_url %}
+                            <img src="{{ deck.image_url }}" alt="{{ deck.commander_name }}" style="width: 40px; height: 55px; border-radius: 4px; object-fit: cover;">
+                        {% endif %}
+                        <strong>{{ deck.commander_name }}</strong>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            {% if deck.color_identity == "C" %}
+                                <img src="https://svgs.scryfall.io/card-symbols/C.svg" style="width: 20px; height: 20px;">
+                            {% else %}
+                                {% for color in deck.color_identity.split(',') %}
+                                    <img src="https://svgs.scryfall.io/card-symbols/{{ color }}.svg" style="width: 20px; height: 20px;">
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>{{ deck.archetype or '-' }}</td>
+                    <td>
+                        {% if deck.bracket %}
+                            {{ deck.bracket.replace('Bracket ', '') }}
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>{{ deck.powerlevel or '-' }}/10</td>
+                    <td>
+                        {% if "Finished" in deck.status %}
+                            <ins>🟢 {{ deck.status }}</ins>
+                        {% elif "Digital" in deck.status %}
+                            <ins style="color: #3b82f6;">🔵 {{ deck.status }}</ins>
+                        {% else %}
+                            <del style="color: #94a3b8;">⚪ {{ deck.status }}</del>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if deck.moxfield_link %}
+                            <a href="{{ deck.moxfield_link }}" target="_blank" rel="noopener">Moxfield ↗</a>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button onclick="openEditModal({{ deck | tojson }})" class="outline secondary" style="padding: 4px 8px; font-size: 0.8rem; margin-bottom: 0; width: auto;">✏️</button>
+                            
+                            <form action="/delete/{{ deck.id }}" method="POST" onsubmit="return confirm('Wirklich löschen?');" style="margin-bottom: 0;">
+                                <button type="submit" class="outline contrast" style="padding: 4px 8px; font-size: 0.8rem; border-color: #ef4444; color: #ef4444; margin-bottom: 0; width: auto; background: transparent;">🗑️</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+
+<dialog id="add-modal">
+    <article style="max-width: 800px; width: 100%;">
+        <header>
+            <button aria-label="Close" rel="prev" onclick="closeModal('add-modal')"></button>
+            <h3>Neues Deck hinzufügen</h3>
+        </header>
+        <div class="grid">
+            <form action="/add" method="POST" id="deckForm">
+                <label for="commander_name">Commander Name *</label>
+                <input type="text" id="commander_name" name="commander_name" placeholder="z.B. Aragorn" required autocomplete="off" list="commander-list">
+                <datalist id="commander-list"></datalist>
+                <small id="search-status">Tippe den Namen ein...</small>
+
+                <input type="hidden" id="color_identity" name="color_identity">
+                <input type="hidden" id="image_url" name="image_url">
+
+                <div class="grid" style="margin-top: 1rem;">
+                    <div>
+                        <label for="archetype">Archetype</label>
+                        <input type="text" id="archetype" name="archetype">
+                    </div>
+                    <div>
+                        <label for="bracket">Bracket</label>
+                        <select id="bracket" name="bracket">
+                            <option value="1">1 (Low)</option>
+                            <option value="2" selected>2 (Mid)</option>
+                            <option value="3">3 (High)</option>
+                            <option value="4">4 (Optimized)</option>
+                            <option value="5">5 (cEDH)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid">
+                    <div>
+                        <label for="powerlevel">Powerlevel</label>
+                        <input type="number" id="powerlevel" name="powerlevel" min="1" max="10" value="7">
+                    </div>
+                    <div>
+                        <label for="status">Status *</label>
+                        <select id="status" name="status" required>
+                            <option value="Idea">Idee / Konzept</option>
+                            <option value="Digital (Moxfield)">Digital (Moxfield)</option>
+                            <option value="In Paper (Proxy)">In Paper (Proxies)</option>
+                            <option value="In Paper (Finished)">In Paper (Fertig)</option>
+                        </select>
+                    </div>
+                </div>
+                <label for="moxfield_link">Moxfield Link</label>
+                <input type="url" id="moxfield_link" name="moxfield_link">
+                <button type="submit" id="submitBtn" disabled>Deck speichern</button>
+            </form>
+            <div style="display: flex; align-items: center; justify-content: center; border-left: 1px solid #374151; padding-left: 1rem;">
+                <div id="card-preview">
+                    <div style="width: 200px; height: 280px; border: 2px dashed #4b5563; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #9ca3af;">Vorschau</div>
+                </div>
+            </div>
+        </div>
+    </article>
+</dialog>
+
+<dialog id="edit-modal">
+    <article style="max-width: 800px; width: 100%;">
+        <header>
+            <button aria-label="Close" rel="prev" onclick="closeModal('edit-modal')"></button>
+            <h3>Deck bearbeiten</h3>
+        </header>
+        <div class="grid">
+            <form action="" method="POST" id="editForm">
+                <label for="edit_commander_name">Commander Name *</label>
+                <input type="text" id="edit_commander_name" name="commander_name" required autocomplete="off" list="edit-commander-list">
+                <datalist id="edit-commander-list"></datalist>
+                <small id="edit-search-status">Ändere den Namen für eine neue Scryfall-Suche.</small>
+
+                <input type="hidden" id="edit_color_identity" name="color_identity">
+                <input type="hidden" id="edit_image_url" name="image_url">
+
+                <div class="grid" style="margin-top: 1rem;">
+                    <div>
+                        <label for="edit_archetype">Archetype</label>
+                        <input type="text" id="edit_archetype" name="archetype">
+                    </div>
+                    <div>
+                        <label for="edit_bracket">Bracket</label>
+                        <select id="edit_bracket" name="bracket">
+                            <option value="1">1 (Low)</option>
+                            <option value="2">2 (Mid)</option>
+                            <option value="3">3 (High)</option>
+                            <option value="4">4 (cEDH)</option>
+                            <option value="Precon">Precon</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid">
+                    <div>
+                        <label for="edit_powerlevel">Powerlevel</label>
+                        <input type="number" id="edit_powerlevel" name="powerlevel" min="1" max="10">
+                    </div>
+                    <div>
+                        <label for="edit_status">Status *</label>
+                        <select id="edit_status" name="status" required>
+                            <option value="Idea">Idee / Konzept</option>
+                            <option value="Digital (Moxfield)">Digital (Moxfield)</option>
+                            <option value="In Paper (Proxy)">In Paper (Proxies)</option>
+                            <option value="In Paper (Finished)">In Paper (Fertig)</option>
+                        </select>
+                    </div>
+                </div>
+                <label for="edit_moxfield_link">Moxfield Link</label>
+                <input type="url" id="edit_moxfield_link" name="moxfield_link">
+                <button type="submit" id="editSubmitBtn">Änderungen speichern</button>
+            </form>
+            <div style="display: flex; align-items: center; justify-content: center; border-left: 1px solid #374151; padding-left: 1rem;">
+                <div id="edit-card-preview"></div>
+            </div>
+        </div>
+    </article>
+</dialog>
+{% endblock %}
