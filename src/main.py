@@ -14,8 +14,8 @@ app = FastAPI(title="Commander Deck Organizer")
 
 # Hier binden wir unsere statischen Dateien (CSS/JS) und HTML-Templates an FastAPI an
 # Wichtig: Da wir uns im Ordner 'src' befinden, reicht der direkte Pfadname
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="src/static"), name="static")
+templates = Jinja2Templates(directory="src/templates")
 
 
 # --- ROUTEN ---
