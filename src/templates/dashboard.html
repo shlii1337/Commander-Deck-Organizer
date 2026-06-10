@@ -91,11 +91,15 @@
         </header>
         <div class="grid">
             <form action="/add" method="POST" id="deckForm">
-                <label for="commander_name">Commander Name *</label>
-                <input type="text" id="commander_name" name="commander_name" placeholder="z.B. Aragorn" required autocomplete="off" list="commander-list">
-                <datalist id="commander-list"></datalist>
-                <small id="search-status">Tippe den Namen ein...</small>
+                <label for="moxfield_link">Moxfield-Link *</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="url" id="moxfield_link" name="moxfield_link" placeholder="https://www.moxfield.com/decks/..." required autocomplete="off" style="flex: 1;">
+                    <button type="button" id="scanBtn" class="outline" style="width: auto; margin-bottom: 0;">🔍 Scan</button>
+                </div>
+                <small id="search-status">Füge einen Moxfield-Link ein und klicke auf "Scan".</small>
+                <div id="detected-commander" style="margin-top: 0.5rem; font-weight: bold;"></div>
 
+                <input type="hidden" id="commander_name" name="commander_name">
                 <input type="hidden" id="color_identity" name="color_identity">
                 <input type="hidden" id="image_url" name="image_url">
 
@@ -130,8 +134,6 @@
                         </select>
                     </div>
                 </div>
-                <label for="moxfield_link">Moxfield Link</label>
-                <input type="url" id="moxfield_link" name="moxfield_link">
                 <button type="submit" id="submitBtn" disabled>Deck speichern</button>
             </form>
             <div style="display: flex; align-items: center; justify-content: center; border-left: 1px solid #374151; padding-left: 1rem;">
@@ -151,11 +153,15 @@
         </header>
         <div class="grid">
             <form action="" method="POST" id="editForm">
-                <label for="edit_commander_name">Commander Name *</label>
-                <input type="text" id="edit_commander_name" name="commander_name" required autocomplete="off" list="edit-commander-list">
-                <datalist id="edit-commander-list"></datalist>
-                <small id="edit-search-status">Ändere den Namen für eine neue Scryfall-Suche.</small>
+                <label for="edit_moxfield_link">Moxfield-Link *</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="url" id="edit_moxfield_link" name="moxfield_link" placeholder="https://www.moxfield.com/decks/..." required autocomplete="off" style="flex: 1;">
+                    <button type="button" id="editScanBtn" class="outline" style="width: auto; margin-bottom: 0;">🔄 Neu scannen</button>
+                </div>
+                <small id="edit-search-status">Ändere den Link und klicke auf "Neu scannen", um Commander/Farben/Artwork zu aktualisieren.</small>
+                <div id="edit-detected-commander" style="margin-top: 0.5rem; font-weight: bold;"></div>
 
+                <input type="hidden" id="edit_commander_name" name="commander_name">
                 <input type="hidden" id="edit_color_identity" name="color_identity">
                 <input type="hidden" id="edit_image_url" name="image_url">
 
@@ -170,8 +176,8 @@
                             <option value="1">1 (Low)</option>
                             <option value="2">2 (Mid)</option>
                             <option value="3">3 (High)</option>
-                            <option value="4">4 (cEDH)</option>
-                            <option value="Precon">Precon</option>
+                            <option value="4">4 (Optimized)</option>
+                            <option value="5">5 (cEDH)</option>
                         </select>
                     </div>
                 </div>
@@ -190,8 +196,6 @@
                         </select>
                     </div>
                 </div>
-                <label for="edit_moxfield_link">Moxfield Link</label>
-                <input type="url" id="edit_moxfield_link" name="moxfield_link">
                 <button type="submit" id="editSubmitBtn">Änderungen speichern</button>
             </form>
             <div style="display: flex; align-items: center; justify-content: center; border-left: 1px solid #374151; padding-left: 1rem;">
