@@ -1,16 +1,21 @@
-from passlib.context import CryptContext
+import os
+import secrets
+
+import bcrypt
 from itsdangerous import Signer
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-# Ein geheimer Schlüssel, um die Cookies fälschungssicher zu machen
-COOKIE_SECRET = "super-geheimes-commander-geheimnis-2026"
+# Geheimer Schlüssel, um die Cookies fälschungssicher zu machen.
+# Per Umgebungsvariable COOKIE_SECRET setzen, damit Sessions Neustarts überdauern.
+COOKIE_SECRET = os.environ.get("COOKIE_SECRET") or secrets.token_urlsafe(32)
 signer = Signer(COOKIE_SECRET)
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    password_bytes = password.encode("utf-8")[:72]
+    return bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode("utf-8")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    password_bytes = plain_password.encode("utf-8")[:72]
+    return bcrypt.checkpw(password_bytes, hashed_password.encode("utf-8"))
 
 # Hilfsfunktionen für das Session-Cookie
 def create_session_cookie(username: str) -> str:
