@@ -34,8 +34,24 @@ function closeModal(modalId) {
 document.addEventListener('DOMContentLoaded', function () {
     console.log("Single-Page Modal Skript geladen! 🃏");
 
+    // Baut den Tooltip-Text für die Powerlevel-Berechnung aus der Score-Aufschlüsselung
+    function buildPowerlevelTooltip(data) {
+        const b = data.breakdown || {};
+        const pts = (factor) => (b[factor] && b[factor].points !== undefined) ? b[factor].points : 0;
+        return [
+            `Score: ${data.score}/100 → Bracket ${data.bracket}`,
+            `Game Changer: +${pts('game_changers')}`,
+            `Tutoren: +${pts('tutors')}`,
+            `Fast Mana: +${pts('fast_mana')}`,
+            `Manabasis: +${pts('mana_base')}`,
+            `Strategie & Tempo: +${pts('strategy_execution')}`,
+            `Synergie/Theme: +${pts('cohesion')}`,
+            `Grundgerüst: +${pts('backbone')}`,
+        ].join('\n');
+    }
+
     // Scannt einen Moxfield-Link und befüllt Commander, Farben & Artwork
-    function setupMoxfieldScan(linkId, scanBtnId, statusId, detectedId, commanderNameId, colorId, imageId, previewId, submitBtnId, bracketId, powerlevelId, archetypeId) {
+    function setupMoxfieldScan(linkId, scanBtnId, statusId, detectedId, commanderNameId, colorId, imageId, previewId, submitBtnId, bracketId, powerlevelId, archetypeId, powerlevelInfoId) {
         const linkInput = document.getElementById(linkId);
         const scanBtn = document.getElementById(scanBtnId);
         const status = document.getElementById(statusId);
@@ -48,6 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const bracketInput = document.getElementById(bracketId);
         const powerlevelInput = document.getElementById(powerlevelId);
         const archetypeInput = document.getElementById(archetypeId);
+        const powerlevelInfo = document.getElementById(powerlevelInfoId);
 
         if (!scanBtn) return;
 
@@ -58,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            status.innerText = "Scanne Deck... ⏳";
+            status.innerText = "Scanne Deck & berechne Powerlevel... ⏳";
 
             fetch(`/api/scan-moxfield?url=${encodeURIComponent(url)}`)
                 .then(res => res.json().then(data => ({ ok: res.ok, data })))
@@ -70,7 +87,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         return;
                     }
 
-                    status.innerHTML = `✅ Deck erfolgreich gescannt`;
                     detected.innerText = `Commander: ${data.commander_name}`;
                     commanderInput.value = data.commander_name;
                     colorInput.value = data.color_identity;
@@ -79,7 +95,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (bracketInput && data.bracket) bracketInput.value = data.bracket;
                     if (powerlevelInput && data.powerlevel !== undefined) powerlevelInput.value = data.powerlevel;
                     if (archetypeInput && data.archetype) archetypeInput.value = data.archetype;
+                    if (powerlevelInfo && data.breakdown) powerlevelInfo.setAttribute('data-tooltip', buildPowerlevelTooltip(data));
                     if (submitBtn) submitBtn.disabled = false;
+
+                    status.innerHTML = `✅ Deck gescannt – Powerlevel ${data.powerlevel}/10 (Bracket ${data.bracket})`;
                 })
                 .catch(() => {
                     status.innerText = "❌ Fehler beim Scannen. Bitte später erneut versuchen.";
@@ -89,6 +108,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Moxfield-Scan auf beide Modals anwenden
-    setupMoxfieldScan('moxfield_link', 'scanBtn', 'search-status', 'detected-commander', 'commander_name', 'color_identity', 'image_url', 'card-preview', 'submitBtn', 'bracket', 'powerlevel', 'archetype');
-    setupMoxfieldScan('edit_moxfield_link', 'editScanBtn', 'edit-search-status', 'edit-detected-commander', 'edit_commander_name', 'edit_color_identity', 'edit_image_url', 'edit-card-preview', 'editSubmitBtn', 'edit_bracket', 'edit_powerlevel', 'edit_archetype');
+    setupMoxfieldScan('moxfield_link', 'scanBtn', 'search-status', 'detected-commander', 'commander_name', 'color_identity', 'image_url', 'card-preview', 'submitBtn', 'bracket', 'powerlevel', 'archetype', 'powerlevel_info');
+    setupMoxfieldScan('edit_moxfield_link', 'editScanBtn', 'edit-search-status', 'edit-detected-commander', 'edit_commander_name', 'edit_color_identity', 'edit_image_url', 'edit-card-preview', 'editSubmitBtn', 'edit_bracket', 'edit_powerlevel', 'edit_archetype', 'edit_powerlevel_info');
 });

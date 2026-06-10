@@ -1,0 +1,10 @@
+[data-tooltip] {
+    cursor: help;
+}
+
+[data-tooltip]::before,
+[data-tooltip]::after {
+    white-space: pre-line;
+    max-width: 280px;
+    text-align: left;
+}

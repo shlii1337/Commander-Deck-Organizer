@@ -191,6 +191,8 @@ def scan_moxfield(url: str, current_user: models.User = Depends(get_current_user
         "bracket": str(power["bracket"]),
         "powerlevel": power["powerlevel"],
         "archetype": power["archetype"] or "",
+        "score": power["score"],
+        "breakdown": power["breakdown"],
     }
 
 
