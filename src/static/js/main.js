@@ -114,6 +114,13 @@ document.addEventListener('DOMContentLoaded', function () {
     setupMoxfieldScan('moxfield_link', 'scanBtn', 'search-status', 'detected-commander', 'commander_name', 'color_identity', 'image_url', 'card-preview', 'submitBtn', 'bracket', 'powerlevel', 'archetype', 'powerlevel_info');
     setupMoxfieldScan('edit_moxfield_link', 'editScanBtn', 'edit-search-status', 'edit-detected-commander', 'edit_commander_name', 'edit_color_identity', 'edit_image_url', 'edit-card-preview', 'editSubmitBtn', 'edit_bracket', 'edit_powerlevel', 'edit_archetype', 'edit_powerlevel_info');
 
+    // Bearbeiten-Buttons auf den Deck-Karten öffnen das Edit-Modal mit den Kartendaten
+    document.querySelectorAll('.edit-deck-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            openEditModal(JSON.parse(btn.dataset.deck));
+        });
+    });
+
     // --- Dashboard: Filter, Sortierung & Suche für die Karten-Ansicht ---
     const deckGrid = document.getElementById('deck-grid');
     if (deckGrid) {

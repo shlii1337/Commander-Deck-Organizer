@@ -196,7 +196,7 @@
     border-top: 1px solid var(--pico-card-border-color);
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
 }
 
 .deck-card-footer form {
@@ -208,17 +208,30 @@
     gap: 0.4rem;
 }
 
-.deck-card-actions button {
-    padding: 4px 8px;
-    font-size: 0.8rem;
-    margin-bottom: 0;
-    width: auto;
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    margin: 0;
+    border-radius: var(--pico-border-radius);
+    border: 1px solid var(--pico-card-border-color);
+    background: transparent;
+    color: var(--pico-color);
+    cursor: pointer;
+    text-decoration: none;
 }
 
-.deck-card-actions button.danger {
+.icon-btn:hover {
+    border-color: var(--pico-primary);
+    color: var(--pico-primary);
+}
+
+.icon-btn-danger:hover {
     border-color: #ef4444;
     color: #ef4444;
-    background: transparent;
 }
 
 /* --- Status pill --- */

@@ -81,7 +81,7 @@
                          data-name="{{ deck.commander_name | lower }}">
                     <div class="deck-card-image">
                         {% if deck.image_url %}
-                            <img src="{{ deck.image_url }}" alt="{{ deck.commander_name }}">
+                            <img src="{{ deck.image_url.replace('/normal/', '/art_crop/') }}" alt="{{ deck.commander_name }}">
                         {% else %}
                             <div class="deck-card-image-placeholder"></div>
                         {% endif %}
@@ -104,15 +104,19 @@
                         <span class="status-pill status-{{ status_classes.get(deck.status, '') }}">{{ status_labels.get(deck.status, deck.status) }}</span>
                     </div>
                     <div class="deck-card-footer">
-                        {% if deck.moxfield_link %}
-                            <a href="{{ deck.moxfield_link }}" target="_blank" rel="noopener">Moxfield ↗</a>
-                        {% else %}
-                            <span></span>
-                        {% endif %}
                         <div class="deck-card-actions">
-                            <button onclick="openEditModal({{ deck | tojson }})" class="outline secondary">✏️</button>
+                            {% if deck.moxfield_link %}
+                            <a href="{{ deck.moxfield_link }}" target="_blank" rel="noopener" class="icon-btn" title="Auf Moxfield öffnen" aria-label="Auf Moxfield öffnen">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+                            </a>
+                            {% endif %}
+                            <button type="button" class="icon-btn edit-deck-btn" data-deck="{{ deck | tojson | forceescape }}" title="Bearbeiten" aria-label="Bearbeiten">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                            </button>
                             <form action="/delete/{{ deck.id }}" method="POST" onsubmit="return confirm('Wirklich löschen?');">
-                                <button type="submit" class="outline contrast danger">🗑️</button>
+                                <button type="submit" class="icon-btn icon-btn-danger" title="Löschen" aria-label="Löschen">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
                             </form>
                         </div>
                     </div>
