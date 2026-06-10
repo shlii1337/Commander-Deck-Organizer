@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from . import models, auth, moxfield, scryfall
+from . import models, auth, moxfield, scryfall, powerlevel
 from .database import engine, get_db
 
 # Reihenfolge der Farben für die Anzeige (WUBRG)
@@ -156,14 +156,17 @@ def scan_moxfield(url: str, current_user: models.User = Depends(get_current_user
         return JSONResponse(status_code=400, content={"error": "Ungültiger Moxfield-Link."})
 
     try:
-        commander_names = moxfield.get_commanders_from_moxfield(deck_id)
+        decklist = moxfield.get_decklist_from_moxfield(deck_id)
     except requests.exceptions.HTTPError:
         return JSONResponse(status_code=404, content={"error": "Deck nicht gefunden oder privat."})
     except requests.exceptions.RequestException:
         return JSONResponse(status_code=502, content={"error": "Moxfield ist gerade nicht erreichbar."})
 
-    if not commander_names:
+    commanders = decklist["commanders"]
+    if not commanders:
         return JSONResponse(status_code=400, content={"error": "Kein Commander in diesem Deck gefunden."})
+
+    commander_names = [card["name"] for card in commanders]
 
     color_identity = set()
     image_url = None
@@ -179,10 +182,15 @@ def scan_moxfield(url: str, current_user: models.User = Depends(get_current_user
     sorted_colors = [color for color in COLOR_ORDER if color in color_identity]
     color_identity_str = ",".join(sorted_colors) if sorted_colors else "C"
 
+    power = powerlevel.calculate_power_level(commanders, decklist["mainboard"], sorted_colors)
+
     return {
         "commander_name": " // ".join(commander_names),
         "color_identity": color_identity_str,
         "image_url": image_url,
+        "bracket": str(power["bracket"]),
+        "powerlevel": power["powerlevel"],
+        "archetype": power["archetype"] or "",
     }
 
 

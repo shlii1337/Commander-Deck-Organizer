@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log("Single-Page Modal Skript geladen! 🃏");
 
     // Scannt einen Moxfield-Link und befüllt Commander, Farben & Artwork
-    function setupMoxfieldScan(linkId, scanBtnId, statusId, detectedId, commanderNameId, colorId, imageId, previewId, submitBtnId) {
+    function setupMoxfieldScan(linkId, scanBtnId, statusId, detectedId, commanderNameId, colorId, imageId, previewId, submitBtnId, bracketId, powerlevelId, archetypeId) {
         const linkInput = document.getElementById(linkId);
         const scanBtn = document.getElementById(scanBtnId);
         const status = document.getElementById(statusId);
@@ -45,6 +45,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const imageInput = document.getElementById(imageId);
         const preview = document.getElementById(previewId);
         const submitBtn = document.getElementById(submitBtnId);
+        const bracketInput = document.getElementById(bracketId);
+        const powerlevelInput = document.getElementById(powerlevelId);
+        const archetypeInput = document.getElementById(archetypeId);
 
         if (!scanBtn) return;
 
@@ -73,6 +76,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     colorInput.value = data.color_identity;
                     imageInput.value = data.image_url;
                     preview.innerHTML = `<img src="${data.image_url}" style="width: 200px; border-radius: 12px;">`;
+                    if (bracketInput && data.bracket) bracketInput.value = data.bracket;
+                    if (powerlevelInput && data.powerlevel !== undefined) powerlevelInput.value = data.powerlevel;
+                    if (archetypeInput && data.archetype) archetypeInput.value = data.archetype;
                     if (submitBtn) submitBtn.disabled = false;
                 })
                 .catch(() => {
@@ -83,6 +89,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Moxfield-Scan auf beide Modals anwenden
-    setupMoxfieldScan('moxfield_link', 'scanBtn', 'search-status', 'detected-commander', 'commander_name', 'color_identity', 'image_url', 'card-preview', 'submitBtn');
-    setupMoxfieldScan('edit_moxfield_link', 'editScanBtn', 'edit-search-status', 'edit-detected-commander', 'edit_commander_name', 'edit_color_identity', 'edit_image_url', 'edit-card-preview', 'editSubmitBtn');
+    setupMoxfieldScan('moxfield_link', 'scanBtn', 'search-status', 'detected-commander', 'commander_name', 'color_identity', 'image_url', 'card-preview', 'submitBtn', 'bracket', 'powerlevel', 'archetype');
+    setupMoxfieldScan('edit_moxfield_link', 'editScanBtn', 'edit-search-status', 'edit-detected-commander', 'edit_commander_name', 'edit_color_identity', 'edit_image_url', 'edit-card-preview', 'editSubmitBtn', 'edit_bracket', 'edit_powerlevel', 'edit_archetype');
 });
