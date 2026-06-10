@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from . import models, auth, moxfield, scryfall, powerlevel
+from . import models, auth, moxfield, scryfall, powerlevel, dashboard_stats
 from .database import engine, get_db
 
 # Reihenfolge der Farben für die Anzeige (WUBRG)
@@ -24,6 +24,40 @@ def get_current_user(session_token: str = Cookie(None), db: Session = Depends(ge
 
 # Hier sagen wir SQLAlchemy: "Guck in models.py und erstelle alle Tabellen in der DB, falls sie noch nicht existieren"
 models.Base.metadata.create_all(bind=engine)
+
+
+# Holt das Decklist (Commander + Mainboard) von Moxfield und speichert es als DeckCard-Zeilen
+def persist_deck_cards(db: Session, deck: models.Deck, moxfield_link: str | None):
+    if not moxfield_link:
+        return
+
+    deck_id = moxfield.extract_deck_id(moxfield_link)
+    if not deck_id:
+        return
+
+    try:
+        decklist = moxfield.get_decklist_from_moxfield(deck_id)
+    except requests.exceptions.RequestException:
+        return
+
+    deck.cards.clear()
+    for card in decklist["commanders"]:
+        deck.cards.append(models.DeckCard(
+            name=card["name"],
+            set_code=card["set"],
+            set_name=card["set_name"],
+            quantity=card["quantity"],
+            is_commander=True,
+        ))
+    for card in decklist["mainboard"]:
+        deck.cards.append(models.DeckCard(
+            name=card["name"],
+            set_code=card["set"],
+            set_name=card["set_name"],
+            quantity=card["quantity"],
+            is_commander=False,
+        ))
+    db.commit()
 
 app = FastAPI(title="Commander Deck Organizer")
 
@@ -50,8 +84,17 @@ def read_dashboard(request: Request, current_user: models.User = Depends(get_cur
         deck_dict = {key: value for key, value in d.__dict__.items() if not key.startswith('_')}
         decks.append(deck_dict)
 
+    stats = dashboard_stats.compute_dashboard_stats(decks, db, current_user.id)
+
     return templates.TemplateResponse(
-        "dashboard.html", {"request": request, "decks": decks, "user": current_user}
+        "dashboard.html",
+        {
+            "request": request,
+            "decks": decks,
+            "user": current_user,
+            "stats": stats,
+            "status_labels": dashboard_stats.STATUS_LABELS,
+        },
     )
 
 
@@ -85,6 +128,7 @@ def add_deck(
     )
     db.add(new_deck)
     db.commit()
+    persist_deck_cards(db, new_deck, moxfield_link)
     return RedirectResponse(url="/", status_code=303)
 
 
@@ -121,6 +165,7 @@ def edit_deck(
     deck.status = status
     deck.moxfield_link = moxfield_link
     db.commit()
+    persist_deck_cards(db, deck, moxfield_link)
     return RedirectResponse(url="/", status_code=303)
 
 

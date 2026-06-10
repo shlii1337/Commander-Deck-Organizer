@@ -45,6 +45,8 @@ def _normalize_card(card: dict, quantity: int) -> dict:
         "type_line": type_line,
         "oracle_text": oracle_text,
         "color_identity": card.get("color_identity") or [],
+        "set": card.get("set", ""),
+        "set_name": card.get("set_name", ""),
     }
 
 

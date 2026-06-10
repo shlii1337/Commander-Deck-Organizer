@@ -113,4 +113,82 @@ document.addEventListener('DOMContentLoaded', function () {
     // Moxfield-Scan auf beide Modals anwenden
     setupMoxfieldScan('moxfield_link', 'scanBtn', 'search-status', 'detected-commander', 'commander_name', 'color_identity', 'image_url', 'card-preview', 'submitBtn', 'bracket', 'powerlevel', 'archetype', 'powerlevel_info');
     setupMoxfieldScan('edit_moxfield_link', 'editScanBtn', 'edit-search-status', 'edit-detected-commander', 'edit_commander_name', 'edit_color_identity', 'edit_image_url', 'edit-card-preview', 'editSubmitBtn', 'edit_bracket', 'edit_powerlevel', 'edit_archetype', 'edit_powerlevel_info');
+
+    // --- Dashboard: Filter, Sortierung & Suche für die Karten-Ansicht ---
+    const deckGrid = document.getElementById('deck-grid');
+    if (deckGrid) {
+        const cards = Array.from(deckGrid.querySelectorAll('.deck-card'));
+        const statusFilters = Array.from(document.querySelectorAll('.status-filter'));
+        const colorPips = Array.from(document.querySelectorAll('.color-filter-pip'));
+        const searchInput = document.getElementById('deck-search');
+        const sortSelect = document.getElementById('deck-sort');
+        const noResults = document.getElementById('no-results-message');
+
+        function applyFilters() {
+            const activeStatuses = new Set(
+                statusFilters.filter(cb => cb.checked).map(cb => cb.value)
+            );
+            const activeColors = colorPips.filter(p => p.classList.contains('active')).map(p => p.dataset.color);
+            const colorFilterActive = activeColors.length > 0 && activeColors.length < colorPips.length;
+            const searchTerm = (searchInput?.value || '').trim().toLowerCase();
+
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const colors = card.dataset.colors === 'C' ? [] : card.dataset.colors.split(',');
+                let visible = activeStatuses.has(card.dataset.status);
+
+                if (visible && colorFilterActive) {
+                    visible = activeColors.every(color => colors.includes(color));
+                }
+
+                if (visible && searchTerm) {
+                    visible = card.dataset.name.includes(searchTerm);
+                }
+
+                card.style.display = visible ? '' : 'none';
+                if (visible) visibleCount++;
+            });
+
+            if (noResults) {
+                noResults.style.display = visibleCount === 0 ? '' : 'none';
+            }
+        }
+
+        function applySort() {
+            const value = sortSelect ? sortSelect.value : 'name_asc';
+            const sorted = [...cards].sort((a, b) => {
+                switch (value) {
+                    case 'name_desc':
+                        return b.dataset.name.localeCompare(a.dataset.name);
+                    case 'powerlevel_desc':
+                        return parseFloat(b.dataset.powerlevel) - parseFloat(a.dataset.powerlevel);
+                    case 'powerlevel_asc':
+                        return parseFloat(a.dataset.powerlevel) - parseFloat(b.dataset.powerlevel);
+                    case 'bracket_desc':
+                        return parseFloat(b.dataset.bracket) - parseFloat(a.dataset.bracket);
+                    case 'bracket_asc':
+                        return parseFloat(a.dataset.bracket) - parseFloat(b.dataset.bracket);
+                    case 'status':
+                        return a.dataset.status.localeCompare(b.dataset.status);
+                    case 'name_asc':
+                    default:
+                        return a.dataset.name.localeCompare(b.dataset.name);
+                }
+            });
+
+            sorted.forEach(card => deckGrid.appendChild(card));
+        }
+
+        statusFilters.forEach(cb => cb.addEventListener('change', applyFilters));
+        colorPips.forEach(pip => pip.addEventListener('click', () => {
+            pip.classList.toggle('active');
+            applyFilters();
+        }));
+        if (searchInput) searchInput.addEventListener('input', applyFilters);
+        if (sortSelect) sortSelect.addEventListener('change', applySort);
+
+        applySort();
+        applyFilters();
+    }
 });

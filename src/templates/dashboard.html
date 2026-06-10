@@ -1,85 +1,126 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+{% set status_classes = {"Idea": "idea", "Digital (Moxfield)": "digital", "In Paper (Proxy)": "proxy", "In Paper (Finished)": "finished"} %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
     <h2>Deine Commander Decks</h2>
-    <button onclick="openAddModal()" style="width: auto; margin-bottom: 0;">+ Neues Deck</button>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Ø Powerlevel</div>
+        <div class="stat-value">{% if stats.avg_powerlevel is not none %}{{ stats.avg_powerlevel }} / 10{% else %}–{% endif %}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Häufigste Farben</div>
+        <div class="stat-value">{% if stats.top_color_combo %}{{ stats.top_color_combo.name }}{% else %}–{% endif %}</div>
+        {% if stats.top_color_combo %}<div class="stat-sub">{{ stats.top_color_combo.count }} Deck{{ 'e' if stats.top_color_combo.count != 1 else '' }}</div>{% endif %}
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Häufigster Bracket</div>
+        <div class="stat-value">{% if stats.top_bracket %}Bracket {{ stats.top_bracket.bracket }}{% else %}–{% endif %}</div>
+        {% if stats.top_bracket %}<div class="stat-sub">{{ stats.top_bracket.count }} Deck{{ 'e' if stats.top_bracket.count != 1 else '' }}</div>{% endif %}
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Meistgenutztes Set</div>
+        <div class="stat-value">{% if stats.top_set %}{{ stats.top_set.name }}{% else %}–{% endif %}</div>
+        {% if stats.top_set %}<div class="stat-sub">{{ stats.top_set.count }}x verbaut</div>{% endif %}
+    </div>
 </div>
 
 {% if not decks %}
     <article style="text-align: center; padding: 3rem;" id="empty-state">
         <h3>Noch keine Decks eingetragen</h3>
-        <p>Klicke oben auf "+ Neues Deck", um zu starten!</p>
+        <p>Klicke unten auf "+ Neues Deck", um zu starten!</p>
+        <button onclick="openAddModal()" style="width: auto;">+ Neues Deck</button>
     </article>
 {% else %}
-    <div class="overflow-auto">
-        <table class="striped">
-            <thead>
-                <tr>
-                    <th scope="col">Commander</th>
-                    <th scope="col">Farben</th>
-                    <th scope="col">Archetype</th>
-                    <th scope="col">Bracket</th>
-                    <th scope="col">Powerlevel</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Link</th>
-                    <th scope="col">Aktionen</th>
-                </tr>
-            </thead>
-            <tbody>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h4>Status</h4>
+                {% for value, label in status_labels.items() %}
+                <label>
+                    <input type="checkbox" class="status-filter" value="{{ value }}" checked> {{ label }}
+                </label>
+                {% endfor %}
+            </div>
+            <div class="sidebar-section">
+                <h4>Farben</h4>
+                <div class="color-filter-pips">
+                    {% for color in ['W', 'U', 'B', 'R', 'G'] %}
+                    <img src="https://svgs.scryfall.io/card-symbols/{{ color }}.svg" class="color-filter-pip active" data-color="{{ color }}" title="{{ color }}">
+                    {% endfor %}
+                </div>
+            </div>
+        </aside>
+
+        <main class="dashboard-main">
+            <div class="dashboard-toolbar">
+                <input type="search" id="deck-search" placeholder="Commander suchen...">
+                <select id="deck-sort">
+                    <option value="name_asc">Commander A-Z</option>
+                    <option value="name_desc">Commander Z-A</option>
+                    <option value="powerlevel_desc">Powerlevel (hoch → niedrig)</option>
+                    <option value="powerlevel_asc">Powerlevel (niedrig → hoch)</option>
+                    <option value="bracket_desc">Bracket (hoch → niedrig)</option>
+                    <option value="bracket_asc">Bracket (niedrig → hoch)</option>
+                    <option value="status">Status</option>
+                </select>
+                <button onclick="openAddModal()" style="width: auto; margin-bottom: 0;">+ Neues Deck</button>
+            </div>
+
+            <div class="deck-grid" id="deck-grid">
                 {% for deck in decks %}
-                <tr>
-                    <td style="display: flex; align-items: center; gap: 10px;">
+                <article class="deck-card"
+                         data-status="{{ deck.status }}"
+                         data-colors="{{ deck.color_identity }}"
+                         data-bracket="{{ deck.bracket or 0 }}"
+                         data-powerlevel="{{ deck.powerlevel or 0 }}"
+                         data-name="{{ deck.commander_name | lower }}">
+                    <div class="deck-card-image">
                         {% if deck.image_url %}
-                            <img src="{{ deck.image_url }}" alt="{{ deck.commander_name }}" style="width: 40px; height: 55px; border-radius: 4px; object-fit: cover;">
+                            <img src="{{ deck.image_url }}" alt="{{ deck.commander_name }}">
+                        {% else %}
+                            <div class="deck-card-image-placeholder"></div>
                         {% endif %}
-                        <strong>{{ deck.commander_name }}</strong>
-                    </td>
-                    <td>
-                        <div style="display: flex; gap: 4px; align-items: center;">
+                    </div>
+                    <div class="deck-card-body">
+                        <strong class="deck-card-title">{{ deck.commander_name }}</strong>
+                        <div class="card-colors">
                             {% if deck.color_identity == "C" %}
-                                <img src="https://svgs.scryfall.io/card-symbols/C.svg" style="width: 20px; height: 20px;">
+                                <img src="https://svgs.scryfall.io/card-symbols/C.svg" class="color-pip">
                             {% else %}
                                 {% for color in deck.color_identity.split(',') %}
-                                    <img src="https://svgs.scryfall.io/card-symbols/{{ color }}.svg" style="width: 20px; height: 20px;">
+                                    <img src="https://svgs.scryfall.io/card-symbols/{{ color }}.svg" class="color-pip">
                                 {% endfor %}
                             {% endif %}
                         </div>
-                    </td>
-                    <td>{{ deck.archetype or '-' }}</td>
-                    <td>
-                        {% if deck.bracket %}
-                            {{ deck.bracket.replace('Bracket ', '') }}
-                        {% else %}-{% endif %}
-                    </td>
-                    <td>{{ deck.powerlevel or '-' }}/10</td>
-                    <td>
-                        {% if "Finished" in deck.status %}
-                            <ins>🟢 {{ deck.status }}</ins>
-                        {% elif "Digital" in deck.status %}
-                            <ins style="color: #3b82f6;">🔵 {{ deck.status }}</ins>
-                        {% else %}
-                            <del style="color: #94a3b8;">⚪ {{ deck.status }}</del>
-                        {% endif %}
-                    </td>
-                    <td>
+                        <div class="deck-card-meta">
+                            <span>{% if deck.bracket %}Bracket {{ deck.bracket.replace('Bracket ', '') }}{% else %}Bracket –{% endif %}</span>
+                            <span>{{ deck.powerlevel if deck.powerlevel is not none else '–' }} / 10</span>
+                        </div>
+                        <span class="status-pill status-{{ status_classes.get(deck.status, '') }}">{{ status_labels.get(deck.status, deck.status) }}</span>
+                    </div>
+                    <div class="deck-card-footer">
                         {% if deck.moxfield_link %}
                             <a href="{{ deck.moxfield_link }}" target="_blank" rel="noopener">Moxfield ↗</a>
-                        {% else %}-{% endif %}
-                    </td>
-                    <td>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <button onclick="openEditModal({{ deck | tojson }})" class="outline secondary" style="padding: 4px 8px; font-size: 0.8rem; margin-bottom: 0; width: auto;">✏️</button>
-                            
-                            <form action="/delete/{{ deck.id }}" method="POST" onsubmit="return confirm('Wirklich löschen?');" style="margin-bottom: 0;">
-                                <button type="submit" class="outline contrast" style="padding: 4px 8px; font-size: 0.8rem; border-color: #ef4444; color: #ef4444; margin-bottom: 0; width: auto; background: transparent;">🗑️</button>
+                        {% else %}
+                            <span></span>
+                        {% endif %}
+                        <div class="deck-card-actions">
+                            <button onclick="openEditModal({{ deck | tojson }})" class="outline secondary">✏️</button>
+                            <form action="/delete/{{ deck.id }}" method="POST" onsubmit="return confirm('Wirklich löschen?');">
+                                <button type="submit" class="outline contrast danger">🗑️</button>
                             </form>
                         </div>
-                    </td>
-                </tr>
+                    </div>
+                </article>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
+            <p id="no-results-message" style="display: none; text-align: center; color: var(--pico-muted-color);">Keine Decks gefunden.</p>
+        </main>
     </div>
 {% endif %}
 
@@ -128,10 +169,9 @@
                     <div>
                         <label for="status">Status *</label>
                         <select id="status" name="status" required>
-                            <option value="Idea">Idee / Konzept</option>
-                            <option value="Digital (Moxfield)">Digital (Moxfield)</option>
-                            <option value="In Paper (Proxy)">In Paper (Proxies)</option>
-                            <option value="In Paper (Finished)">In Paper (Fertig)</option>
+                            {% for value, label in status_labels.items() %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                 </div>
@@ -191,10 +231,9 @@
                     <div>
                         <label for="edit_status">Status *</label>
                         <select id="edit_status" name="status" required>
-                            <option value="Idea">Idee / Konzept</option>
-                            <option value="Digital (Moxfield)">Digital (Moxfield)</option>
-                            <option value="In Paper (Proxy)">In Paper (Proxies)</option>
-                            <option value="In Paper (Finished)">In Paper (Fertig)</option>
+                            {% for value, label in status_labels.items() %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                 </div>
