@@ -121,8 +121,9 @@
                 </div>
                 <div class="grid">
                     <div>
-                        <label for="powerlevel">Powerlevel <span id="powerlevel_info" tabindex="0" style="cursor: help;" data-tooltip="Scanne ein Deck, um die Berechnung zu sehen.">ⓘ</span></label>
-                        <input type="number" id="powerlevel" name="powerlevel" min="1" max="10" value="7">
+                        <label for="powerlevel_display">Powerlevel <span id="powerlevel_info" tabindex="0" style="cursor: help;" data-tooltip="Scanne ein Deck, um die Berechnung zu sehen.">ⓘ</span></label>
+                        <input type="text" id="powerlevel_display" value="–" disabled>
+                        <input type="hidden" id="powerlevel" name="powerlevel">
                     </div>
                     <div>
                         <label for="status">Status *</label>
@@ -183,8 +184,9 @@
                 </div>
                 <div class="grid">
                     <div>
-                        <label for="edit_powerlevel">Powerlevel <span id="edit_powerlevel_info" tabindex="0" style="cursor: help;" data-tooltip="Scanne ein Deck, um die Berechnung zu sehen.">ⓘ</span></label>
-                        <input type="number" id="edit_powerlevel" name="powerlevel" min="1" max="10">
+                        <label for="edit_powerlevel_display">Powerlevel <span id="edit_powerlevel_info" tabindex="0" style="cursor: help;" data-tooltip="Scanne ein Deck, um die Berechnung zu sehen.">ⓘ</span></label>
+                        <input type="text" id="edit_powerlevel_display" value="–" disabled>
+                        <input type="hidden" id="edit_powerlevel" name="powerlevel">
                     </div>
                     <div>
                         <label for="edit_status">Status *</label>

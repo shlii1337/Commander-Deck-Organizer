@@ -16,7 +16,8 @@ function openEditModal(deck) {
     document.getElementById('edit_image_url').value = deck.image_url;
     document.getElementById('edit_archetype').value = deck.archetype || '';
     document.getElementById('edit_bracket').value = deck.bracket || '2';
-    document.getElementById('edit_powerlevel').value = deck.powerlevel || 7;
+    document.getElementById('edit_powerlevel').value = deck.powerlevel ?? 0;
+    document.getElementById('edit_powerlevel_display').value = deck.powerlevel ? `${deck.powerlevel} / 10` : '–';
     document.getElementById('edit_status').value = deck.status;
 
     // Erkannten Commander & Bild-Vorschau direkt anzeigen
@@ -63,6 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const submitBtn = document.getElementById(submitBtnId);
         const bracketInput = document.getElementById(bracketId);
         const powerlevelInput = document.getElementById(powerlevelId);
+        const powerlevelDisplay = document.getElementById(`${powerlevelId}_display`);
         const archetypeInput = document.getElementById(archetypeId);
         const powerlevelInfo = document.getElementById(powerlevelInfoId);
 
@@ -94,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     preview.innerHTML = `<img src="${data.image_url}" style="width: 200px; border-radius: 12px;">`;
                     if (bracketInput && data.bracket) bracketInput.value = data.bracket;
                     if (powerlevelInput && data.powerlevel !== undefined) powerlevelInput.value = data.powerlevel;
+                    if (powerlevelDisplay && data.powerlevel !== undefined) powerlevelDisplay.value = `${data.powerlevel} / 10`;
                     if (archetypeInput && data.archetype) archetypeInput.value = data.archetype;
                     if (powerlevelInfo && data.breakdown) powerlevelInfo.setAttribute('data-tooltip', buildPowerlevelTooltip(data));
                     if (submitBtn) submitBtn.disabled = false;
