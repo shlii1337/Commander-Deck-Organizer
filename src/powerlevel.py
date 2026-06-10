@@ -182,7 +182,7 @@ def score_tutors(tagged: list[tuple[dict, set, bool]]) -> tuple[int, dict]:
         weighted_total += weight
         cards.append({"name": card["name"], "weight": round(weight, 2)})
 
-    points = min(20, round(weighted_total / 5.5 * 20))
+    points = round(min(20.0, weighted_total / 5.5 * 20), 2)
     return points, {"weighted_count": round(weighted_total, 2), "cards": cards}
 
 
@@ -197,14 +197,14 @@ def score_fast_mana(tagged: list[tuple[dict, set, bool]]) -> tuple[int, dict]:
     count = len(names)
     anchors = [(0, 0), (2, 5), (5, 13), (8, 20)]
     if count >= anchors[-1][0]:
-        points = anchors[-1][1]
+        points = float(anchors[-1][1])
     else:
-        points = anchors[-1][1]
+        points = float(anchors[-1][1])
         for (x0, y0), (x1, y1) in zip(anchors, anchors[1:]):
             if x0 <= count <= x1:
                 points = y0 + (y1 - y0) * (count - x0) / (x1 - x0)
                 break
-    return round(points), {"count": count, "cards": names}
+    return round(points, 2), {"count": count, "cards": names}
 
 
 def score_mana_base(tagged: list[tuple[dict, set, bool]], color_identity: list[str]) -> tuple[int, dict]:
@@ -222,11 +222,11 @@ def score_mana_base(tagged: list[tuple[dict, set, bool]], color_identity: list[s
             fixing.append(card["name"])
 
     if color_count <= 1:
-        points = 10
+        points = 10.0
     else:
         needed = (color_count - 1) * 4
-        points = min(10, round(len(fixing) / needed * 10))
-    return points, {"fixing_land_count": len(fixing), "color_count": color_count}
+        points = min(10.0, len(fixing) / needed * 10)
+    return round(points, 2), {"fixing_land_count": len(fixing), "color_count": color_count}
 
 
 def score_strategy_execution(
@@ -407,15 +407,18 @@ def calculate_power_level(
     cohesion_points, cohesion_detail = score_cohesion(tagged)
     backbone_points, backbone_detail = score_backbone(tagged, color_identity)
 
-    score = min(
-        100,
-        gc_points
-        + tutor_points
-        + fast_mana_points
-        + mana_base_points
-        + execution_points
-        + cohesion_points
-        + backbone_points,
+    score = round(
+        min(
+            100.0,
+            gc_points
+            + tutor_points
+            + fast_mana_points
+            + mana_base_points
+            + execution_points
+            + cohesion_points
+            + backbone_points,
+        ),
+        2,
     )
 
     if score >= 96:
@@ -440,7 +443,7 @@ def calculate_power_level(
         "score": score,
         "bracket": bracket,
         "bracket_label": BRACKET_LABELS[bracket],
-        "powerlevel": round(score / 10),
+        "powerlevel": round(score / 10, 2),
         "archetype": archetype,
         "breakdown": {
             "game_changers": {"points": gc_points, **gc_detail},

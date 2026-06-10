@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, Float, String, ForeignKey
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -21,7 +21,7 @@ class Deck(Base):
     image_url = Column(String)
     archetype = Column(String, nullable=True)
     bracket = Column(String, nullable=True)
-    powerlevel = Column(Integer, nullable=True)
+    powerlevel = Column(Float, nullable=True)
     status = Column(String)
     moxfield_link = Column(String, nullable=True)
     
