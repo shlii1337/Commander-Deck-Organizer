@@ -1,8 +1,12 @@
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Wo soll die Datenbank-Datei liegen? Direkt im Hauptordner.
-SQLALCHEMY_DATABASE_URL = "sqlite:///./commander_decks.db"
+# Wo soll die Datenbank-Datei liegen? Im data/-Ordner, damit er als
+# Volume gemountet werden kann und Daten Container-Neustarts überdauern.
+os.makedirs("data", exist_ok=True)
+SQLALCHEMY_DATABASE_URL = "sqlite:///./data/commander_decks.db"
 
 # Das Engine-Objekt steuert die eigentliche Verbindung zur SQLite-Datei.
 # 'check_same_thread': False ist ein SQLite-Spezifikum, das FastAPI benötigt.
